@@ -9,10 +9,11 @@
 #include <fstream>
 using namespace std;
 
+void merge();
+void mergeSort();
+
 int main(int argc, char **argv){
+    int memoria, linhas;
 
-
-
-    
     return 0;
 }
