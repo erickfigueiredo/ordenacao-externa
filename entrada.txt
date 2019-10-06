@@ -1,0 +1,4 @@
+nome,idade,sexo,qi
+erick,18,m,8000
+savio,18,m,7000
+yago,18,m,NaN 
