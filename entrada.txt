@@ -1,4 +1,12 @@
-nome,idade,sexo,qi
-erick,18,m,8000
-savio,18,m,7000
-yago,18,m,NaN 
+nome,idade,sexo,altura,cor
+erick,18,m,178,vermelho
+savio,18,m,178,verde
+yago,18,m,180,azul
+xenio,23,m,178,brancoclear
+gaspar,180,m,178,roxo
+bruce,40,m,180,preto
+carlos,18,m,178,amarelo
+lion,18,m,178,laranja
+adriano,18,m,180,rubro
+renata,18,m,178,lilas
+guidoval,18,m,178,cinza
