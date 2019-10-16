@@ -85,6 +85,8 @@ int main(int agrc, char **argv)
 			(i == linha - 1) ? fout << informacao[i].ordena << ',' << informacao[i].media : fout << informacao[i].ordena << ',' << informacao[i].media << endl;
 		}
 
+		fout.close();
+
 		for (int i = 0; i < linha; i++)
 		{
 			delete[] informacao[i].ordena;
@@ -95,7 +97,7 @@ int main(int agrc, char **argv)
 		linha = 0;
 	}
 	//Ordena de forma intercalada os dados dos arquivos temporarios
-
+	fin.close();
 	agregaChaves(intercala(cont, memoria, linhaFinal));
 	return 0;
 }
@@ -141,11 +143,14 @@ void agregaChaves(int totLinhas)
 				contMedia = 1;
 				contLinha++;
 			}
+
 		}
 		
 		delete[] chave;
 	}
 	cout << fixed << setprecision(6) << compara << ',' << media / (double)contMedia << endl;
+	delete[]compara;
+	ffin.close();
 }
 
 void registraMenor(Informacao *info, bool zerouArquivo[], int numArqs, ofstream &fout, int &posMenor, int &contLinha)
@@ -231,6 +236,7 @@ int intercala(int numArqs, int memoria, int linha)
 	{
 		delete[] info[i].ordena;
 		delete[] info[i].media;
+		repo[i].close();
 	}
 	delete[] info;
 	delete[] repo;
