@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdio>
+#include <iomanip>
 #include <cstring>
 using namespace std;
 
@@ -10,6 +11,7 @@ struct Informacao
 	char *media;
 };
 
+void agregaChaves();
 void registraMenor(Informacao *info, bool zerouArquivo, int numArqs, ofstream &fout, int &posMenor);
 void preencheVetorChar(Informacao *info, int pos, ifstream &fin);
 void intercala(int numArqs, int memoria, int linha);
@@ -44,7 +46,7 @@ int main(int agrc, char **argv)
 		if (cab[i] == ',')
 			cMed++;
 	}
-
+	int linhaFinal;
 	while (!fin.eof())
 	{
 		Informacao *informacao = new Informacao[memoria];
@@ -89,14 +91,61 @@ int main(int agrc, char **argv)
 			delete[] informacao[i].media;
 		}
 		delete[] informacao;
+		linhaFinal = linha;
 		linha = 0;
 	}
 	//Ordena de forma intercalada os dados dos arquivos temporarios
-	intercala(cont, memoria, linha);
+	//intercala(cont, memoria, linhaFinal);
+	agregaChaves();
 	return 0;
 }
 
-void registraMenor(Informacao *info, bool zerouArquivo[], int numArqs, ofstream &fout, int &posMenor)
+void agregaChaves()
+{
+	char *token, *chave, *elemento, *compara;
+	double media = 0;
+	int contMedia = 1;
+	string aux;
+
+	ifstream ffin("final.txt");
+	for (int i = 0; !ffin.eof(); i++)
+	{
+		getline(ffin, aux);
+		elemento = (char *)aux.c_str();
+		token = strtok(elemento, ",");
+		chave = new char[strlen(token) + 1];
+		strcpy(chave, token);
+		token = strtok(NULL, "\0,\n");
+		if (i == 0)
+		{
+			compara = new char[strlen(chave) + 1];
+			strcpy(compara, chave);
+			media = atof(token);
+		}
+		else
+		{
+			if (strcmp(chave, compara) == 0)
+			{
+				media += atof(token);
+				contMedia++;
+			}
+			else
+			{
+				cout << fixed << setprecision(6) << compara << ',' << media / (double)contMedia << endl;
+				delete[] compara;
+				compara = new char[strlen(chave)+1];
+				strcpy(compara, chave);
+				media = atof(token);
+				contMedia = 1;
+			}
+		}
+		
+		delete[] chave;
+	}
+	cout << fixed << setprecision(6) << compara << ',' << media / (double)contMedia << endl;
+}
+
+void registraMenor(Informacao *info, bool zerouArquivo[], int numArqs, ofstream &fout, int &posMenor, int &contLinha)
 {
 	Informacao infoAux;
 	int posNaoNula = 0;
@@ -118,13 +167,14 @@ void registraMenor(Informacao *info, bool zerouArquivo[], int numArqs, ofstream 
 			infoAux.media = info[i].media;
 		}
 	fout << infoAux.ordena << ',' << infoAux.media << endl;
+	contLinha++;
 }
 
 void intercala(int numArqs, int memoria, int linha)
 {
-	cout << numArqs << endl;
 	char nomeArq[1000] = {' '};
 	char *elemento, *token;
+	int contLinha = 0;
 	bool zerouArquivo[numArqs];
 	int posMenor;
 	string aux;
@@ -139,7 +189,6 @@ void intercala(int numArqs, int memoria, int linha)
 	for (int i = 0; i < numArqs; i++)
 	{
 		sprintf(nomeArq, "buffer%d.txt", i);
-		//cout << nomeArq << endl;
 		repo[i] = ifstream(nomeArq);
 		getline(repo[i], aux);
 		elemento = (char *)aux.c_str();
@@ -151,15 +200,10 @@ void intercala(int numArqs, int memoria, int linha)
 		token = strtok(NULL, "\0,\n");
 		info[i].media = new char[strlen(token) + 1];
 		strcpy(info[i].media, token);
-
-		//cout << info[i].ordena << ' ' << info[i].media << endl;
 	}
-	cout << numArqs << " " << memoria << endl;
-	for (int k = 0; true; k++)
+	for (int k = 0; contLinha < ((memoria * numArqs - (memoria - linha))); k++)
 	{
-		registraMenor(info, zerouArquivo, numArqs, fout, posMenor);
-		//cout << posMenor << endl;
-
+		registraMenor(info, zerouArquivo, numArqs, fout, posMenor, contLinha);
 		if (repo[posMenor].eof())
 		{
 			zerouArquivo[posMenor] = true;
