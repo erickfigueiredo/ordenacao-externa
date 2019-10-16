@@ -10,8 +10,9 @@ struct Informacao
 	char *media;
 };
 
-void registraMenor(Informacao *info, int numArqs, ofstream &fout);
-void intercala(int numArqs);
+void registraMenor(Informacao *info, bool zerouArquivo, int numArqs, ofstream &fout, int &posMenor);
+void preencheVetorChar(Informacao *info, int pos, ifstream &fin);
+void intercala(int numArqs, int memoria, int linha);
 int particiona(Informacao *info, int beg, int end, int pivo);
 void quickSort2(Informacao *info, int beg, int end);
 void quickSort(Informacao *info, int tam);
@@ -91,41 +92,49 @@ int main(int agrc, char **argv)
 		linha = 0;
 	}
 	//Ordena de forma intercalada os dados dos arquivos temporarios
-	intercala(cont);
+	intercala(cont, memoria, linha);
 	return 0;
 }
 
-void registraMenor(Informacao *info, int numArqs, ofstream &fout)
+
+
+void registraMenor(Informacao *info, bool zerouArquivo[], int numArqs, ofstream &fout, int &posMenor)
 {
 	Informacao infoAux;
+	posMenor = 0;
 	infoAux.ordena = info[0].ordena;
 	infoAux.media = info[0].media;
 
-	for (int i = 1; i < numArqs; i++)
-		if (strcmp(infoAux.ordena, info[i].ordena) > 0)
+	for (int i = 0; i < numArqs; i++)
+		if (strcmp(infoAux.ordena, info[i].ordena) > 0 && zerouArquivo[i] != true)
 		{
+			posMenor = i;
 			infoAux.ordena = info[i].ordena;
 			infoAux.media = info[i].media;
 		}
-	fout << infoAux.ordena << ',' << infoAux.media << endl;
-}
+		fout << infoAux.ordena << ',' << infoAux.media << endl;
+	}
 
-void intercala(int numArqs)
-{
-	char nomeArq[1000] = {' '};
-	char *elemento, *token;
-	string aux;
-	ifstream *repo = new ifstream[numArqs];
-	Informacao *info = new Informacao[numArqs];
 
-	ofstream fout("final.txt", ios::app);
-
-	for (int j = 0; /*Alguma coisa*/; j++)
+	void intercala(int numArqs, int memoria, int linha)
 	{
+		cout << numArqs << endl;
+		char nomeArq[1000] = {' '};
+		char *elemento, *token;
+		bool zerouArquivo[numArqs];
+		int posMenor;
+		string aux;
+		ifstream *repo = new ifstream[numArqs];
+		Informacao *info = new Informacao[numArqs];
+
+		ofstream fout("final.txt", ios::app);
+		for(int i = 0; i < numArqs; i++){
+			zerouArquivo[i] = false;
+		}
 		for (int i = 0; i < numArqs; i++)
 		{
 			sprintf(nomeArq, "buffer%d.txt", i);
-			//cout << nomeArq << endl;
+		//cout << nomeArq << endl;
 			repo[i] = ifstream(nomeArq);
 			getline(repo[i], aux);
 			elemento = (char *)aux.c_str();
@@ -138,52 +147,77 @@ void intercala(int numArqs)
 			info[i].media = new char[strlen(token) + 1];
 			strcpy(info[i].media, token);
 
-			//cout << info[i].ordena << ' ' << info[i].media << endl;
+		//cout << info[i].ordena << ' ' << info[i].media << endl;
 		}
-		registraMenor(info, numArqs, fout);
-		
-	}
-	for (int i = 0; i < numArqs; i++)
-	{
-		delete[] info[i].ordena;
-		delete[] info[i].media;
-	}
-	delete[] info;
-	delete[] repo;
-}
+		cout << numArqs << " " << memoria <<
+		for(int k = 0; k < ((numArqs * memoria) - (memoria - linha)); k++){
+			registraMenor(info, zerouArquivo, numArqs, fout, posMenor);
+			//cout << posMenor << endl;
 
-int particiona(Informacao *info, int beg, int end, int pivo)
-{
-	char valorPivo[100];
-	strcpy(valorPivo, info[pivo].ordena);
+			if(repo[posMenor].eof()){
+				zerouArquivo[posMenor] = true;
+			}
+			else{
+				getline(repo[posMenor], aux);
+				elemento = (char *)aux.c_str();
+
+				token = strtok(elemento, ",");
+
+				info[posMenor].ordena = new char[strlen(token) + 1];
+				strcpy(info[posMenor].ordena, token);
+				token = strtok(NULL, "\0,\n");
+				info[posMenor].media = new char[strlen(token) + 1];
+				strcpy(info[posMenor].media, token);
+			}
+		}
+
+
+
+
+
+
+
+			for (int i = 0; i < numArqs; i++)
+			{
+				delete[] info[i].ordena;
+				delete[] info[i].media;
+			}
+			delete[] info;
+			delete[] repo;
+		}
+
+		int particiona(Informacao *info, int beg, int end, int pivo)
+		{
+			char valorPivo[100];
+			strcpy(valorPivo, info[pivo].ordena);
 	//colocamos o pivo temporariamente na ultima posição
-	swap(info[end - 1], info[pivo]);
+			swap(info[end - 1], info[pivo]);
 	// ao acharmos um elemento menor do que o pivo, vamos coloca-lo
 	// na posicao "pos"
-	int pos = beg;
-	for (int i = beg; i < end - 1; i++)
-	{
-		if (strcmp(info[i].ordena, valorPivo) < 0)
-		{
-			swap(info[pos], info[i]);
-			pos++;
-		}
-	}
+			int pos = beg;
+			for (int i = beg; i < end - 1; i++)
+			{
+				if (strcmp(info[i].ordena, valorPivo) < 0)
+				{
+					swap(info[pos], info[i]);
+					pos++;
+				}
+			}
 	//coloque o pivo depois do ultimo elemento menor que ele
-	swap(info[pos], info[end - 1]);
-	return pos;
-}
+			swap(info[pos], info[end - 1]);
+			return pos;
+		}
 
-void quickSort2(Informacao *info, int beg, int end)
-{
-	if (beg == end)
-		return;
-	int pos = particiona(info, beg, end, beg);
-	quickSort2(info, beg, pos);
-	quickSort2(info, pos + 1, end);
-}
+		void quickSort2(Informacao *info, int beg, int end)
+		{
+			if (beg == end)
+				return;
+			int pos = particiona(info, beg, end, beg);
+			quickSort2(info, beg, pos);
+			quickSort2(info, pos + 1, end);
+		}
 
-void quickSort(Informacao *info, int tam)
-{
-	quickSort2(info, 0, tam);
-}
+		void quickSort(Informacao *info, int tam)
+		{
+			quickSort2(info, 0, tam);
+		}

@@ -11,4 +11,3 @@ adriano,18,m,180,rubro,n
 renata,18,f,178,lilas,n
 guidoval,18,m,178,cinza,n
 zelia,67,f,163,anil,n
-carolina,22,f,173,rosa,n
