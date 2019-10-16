@@ -11,10 +11,10 @@ struct Informacao
 	char *media;
 };
 
-void agregaChaves();
+void agregaChaves(int totLinha);
 void registraMenor(Informacao *info, bool zerouArquivo, int numArqs, ofstream &fout, int &posMenor);
 void preencheVetorChar(Informacao *info, int pos, ifstream &fin);
-void intercala(int numArqs, int memoria, int linha);
+int intercala(int numArqs, int memoria, int linha);
 int particiona(Informacao *info, int beg, int end, int pivo);
 void quickSort2(Informacao *info, int beg, int end);
 void quickSort(Informacao *info, int tam);
@@ -95,20 +95,21 @@ int main(int agrc, char **argv)
 		linha = 0;
 	}
 	//Ordena de forma intercalada os dados dos arquivos temporarios
-	//intercala(cont, memoria, linhaFinal);
-	agregaChaves();
+
+	agregaChaves(intercala(cont, memoria, linhaFinal));
 	return 0;
 }
 
-void agregaChaves()
+void agregaChaves(int totLinhas)
 {
 	char *token, *chave, *elemento, *compara;
 	double media = 0;
 	int contMedia = 1;
+	int contLinha = 1;
 	string aux;
 
 	ifstream ffin("final.txt");
-	for (int i = 0; !ffin.eof(); i++)
+	for (int i = 0; !ffin.eof() && contLinha != totLinhas; i++)
 	{
 		getline(ffin, aux);
 		elemento = (char *)aux.c_str();
@@ -128,6 +129,7 @@ void agregaChaves()
 			{
 				media += atof(token);
 				contMedia++;
+				contLinha++;
 			}
 			else
 			{
@@ -137,6 +139,7 @@ void agregaChaves()
 				strcpy(compara, chave);
 				media = atof(token);
 				contMedia = 1;
+				contLinha++;
 			}
 		}
 		
@@ -170,7 +173,7 @@ void registraMenor(Informacao *info, bool zerouArquivo[], int numArqs, ofstream 
 	contLinha++;
 }
 
-void intercala(int numArqs, int memoria, int linha)
+int intercala(int numArqs, int memoria, int linha)
 {
 	char nomeArq[1000] = {' '};
 	char *elemento, *token;
@@ -214,7 +217,8 @@ void intercala(int numArqs, int memoria, int linha)
 			elemento = (char *)aux.c_str();
 
 			token = strtok(elemento, ",");
-
+			delete[] info[posMenor].ordena;
+			delete[] info[posMenor].media;
 			info[posMenor].ordena = new char[strlen(token) + 1];
 			strcpy(info[posMenor].ordena, token);
 			token = strtok(NULL, "\0,\n");
@@ -230,6 +234,8 @@ void intercala(int numArqs, int memoria, int linha)
 	}
 	delete[] info;
 	delete[] repo;
+
+	return ((memoria * numArqs - (memoria - linha)));
 }
 
 int particiona(Informacao *info, int beg, int end, int pivo)
