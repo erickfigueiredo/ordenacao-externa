@@ -1,23 +1,27 @@
+/*
+Desenvolvido por: 	Erick Lima Figueredo - 98898
+					Sávio Mendes Miranda - 98886
+					Yago Lopes Lamas - 98897
+
+Disciplina: INF 112 - Giovanni Ventorim Comarela
+*/
+
+#include <cstdio>
+#include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <fstream>
-#include <cstdio>
-#include <iomanip>
-#include <cstring>
 using namespace std;
 
-struct Informacao
-{
-	char *ordena;
-	char *media;
-};
+struct Informacao{ char *ordena; char *media;};
 
-void agregaChaves(int totLinha);
-void registraMenor(Informacao *info, bool zerouArquivo, int numArqs, ofstream &fout, int &posMenor);
-void preencheVetorChar(Informacao *info, int pos, ifstream &fin);
-int intercala(int numArqs, int memoria, int linha);
+void agregaChaves(int totLinhas);
+void deletaBuffers(int numArqs);
+void intercala(int numArqs, int memoria, int linha);
 int particiona(Informacao *info, int beg, int end, int pivo);
-void quickSort2(Informacao *info, int beg, int end);
 void quickSort(Informacao *info, int tam);
+void quickSort2(Informacao *info, int beg, int end);
+
 
 int main(int agrc, char **argv)
 {
@@ -46,7 +50,7 @@ int main(int agrc, char **argv)
 		if (cab[i] == ',')
 			cMed++;
 	}
-	int linhaFinal;
+
 	while (!fin.eof())
 	{
 		Informacao *informacao = new Informacao[memoria];
@@ -82,9 +86,8 @@ int main(int agrc, char **argv)
 		ofstream fout(temp);
 		for (int i = 0; i < linha; i++)
 		{
-			(i == linha - 1) ? fout << informacao[i].ordena << ',' << informacao[i].media : fout << informacao[i].ordena << ',' << informacao[i].media << endl;
+			(i == linha - 1) ? fout << informacao[i].ordena << ',' << informacao[i].media << ';' : fout << informacao[i].ordena << ',' << informacao[i].media << ';' << endl;
 		}
-
 		fout.close();
 
 		for (int i = 0; i < linha; i++)
@@ -93,160 +96,31 @@ int main(int agrc, char **argv)
 			delete[] informacao[i].media;
 		}
 		delete[] informacao;
-		linhaFinal = linha;
 		linha = 0;
 	}
-	//Ordena de forma intercalada os dados dos arquivos temporarios
 	fin.close();
-	agregaChaves(intercala(cont, memoria, linhaFinal));
+	//Ordena de forma intercalada os dados dos arquivos temporarios
+	intercala(cont, memoria, linha);
+	deletaBuffers(cont);
 	return 0;
 }
 
-void agregaChaves(int totLinhas)
+void quickSort(Informacao *info, int tam)
 {
-	char *token, *chave, *elemento, *compara;
-	double media = 0;
-	int contMedia = 1;
-	int contLinha = 1;
-	string aux;
-
-	ifstream ffin("final.txt");
-	for (int i = 0; !ffin.eof() && contLinha != totLinhas; i++)
-	{
-		getline(ffin, aux);
-		elemento = (char *)aux.c_str();
-		token = strtok(elemento, ",");
-		chave = new char[strlen(token) + 1];
-		strcpy(chave, token);
-		token = strtok(NULL, "\0,\n");
-		if (i == 0)
-		{
-			compara = new char[strlen(chave) + 1];
-			strcpy(compara, chave);
-			media = atof(token);
-		}
-		else
-		{
-			if (strcmp(chave, compara) == 0)
-			{
-				media += atof(token);
-				contMedia++;
-				contLinha++;
-			}
-			else
-			{
-				cout << fixed << setprecision(6) << compara << ',' << media / (double)contMedia << endl;
-				delete[] compara;
-				compara = new char[strlen(chave)+1];
-				strcpy(compara, chave);
-				media = atof(token);
-				contMedia = 1;
-				contLinha++;
-			}
-
-		}
-		
-		delete[] chave;
-	}
-	cout << fixed << setprecision(6) << compara << ',' << media / (double)contMedia << endl;
-	delete[]compara;
-	ffin.close();
+	quickSort2(info, 0, tam);
 }
-
-void registraMenor(Informacao *info, bool zerouArquivo[], int numArqs, ofstream &fout, int &posMenor, int &contLinha)
+void quickSort2(Informacao *info, int beg, int end)
 {
-	Informacao infoAux;
-	int posNaoNula = 0;
-	posMenor = 0;
-	for (int i = 0; i < numArqs; i++)
-		if (!zerouArquivo[i])
-		{
-			infoAux.ordena = info[i].ordena;
-			infoAux.media = info[i].media;
-			posNaoNula = i;
-			break;
-		}
-
-	for (int i = posNaoNula; i < numArqs; i++)
-		if (strcmp(infoAux.ordena, info[i].ordena) > 0 && zerouArquivo[i] != true)
-		{
-			posMenor = i;
-			infoAux.ordena = info[i].ordena;
-			infoAux.media = info[i].media;
-		}
-	fout << infoAux.ordena << ',' << infoAux.media << endl;
-	contLinha++;
-}
-
-int intercala(int numArqs, int memoria, int linha)
-{
-	char nomeArq[1000] = {' '};
-	char *elemento, *token;
-	int contLinha = 0;
-	bool zerouArquivo[numArqs];
-	int posMenor;
-	string aux;
-	ifstream *repo = new ifstream[numArqs];
-	Informacao *info = new Informacao[numArqs];
-
-	ofstream fout("final.txt", ios::app);
-	for (int i = 0; i < numArqs; i++)
-	{
-		zerouArquivo[i] = false;
-	}
-	for (int i = 0; i < numArqs; i++)
-	{
-		sprintf(nomeArq, "buffer%d.txt", i);
-		repo[i] = ifstream(nomeArq);
-		getline(repo[i], aux);
-		elemento = (char *)aux.c_str();
-
-		token = strtok(elemento, ",");
-
-		info[i].ordena = new char[strlen(token) + 1];
-		strcpy(info[i].ordena, token);
-		token = strtok(NULL, "\0,\n");
-		info[i].media = new char[strlen(token) + 1];
-		strcpy(info[i].media, token);
-	}
-	for (int k = 0; contLinha < ((memoria * numArqs - (memoria - linha))); k++)
-	{
-		registraMenor(info, zerouArquivo, numArqs, fout, posMenor, contLinha);
-		if (repo[posMenor].eof())
-		{
-			zerouArquivo[posMenor] = true;
-		}
-		else
-		{
-			getline(repo[posMenor], aux);
-			elemento = (char *)aux.c_str();
-
-			token = strtok(elemento, ",");
-			delete[] info[posMenor].ordena;
-			delete[] info[posMenor].media;
-			info[posMenor].ordena = new char[strlen(token) + 1];
-			strcpy(info[posMenor].ordena, token);
-			token = strtok(NULL, "\0,\n");
-			info[posMenor].media = new char[strlen(token) + 1];
-			strcpy(info[posMenor].media, token);
-		}
-	}
-
-	for (int i = 0; i < numArqs; i++)
-	{
-		delete[] info[i].ordena;
-		delete[] info[i].media;
-		repo[i].close();
-	}
-	delete[] info;
-	delete[] repo;
-
-	return ((memoria * numArqs - (memoria - linha)));
+	if (beg == end)
+		return;
+	int pos = particiona(info, beg, end, beg);
+	quickSort2(info, beg, pos);
+	quickSort2(info, pos + 1, end);
 }
 
 int particiona(Informacao *info, int beg, int end, int pivo)
 {
-	char valorPivo[100];
+	char valorPivo[1000];
 	strcpy(valorPivo, info[pivo].ordena);
 	//colocamos o pivo temporariamente na ultima posição
 	swap(info[end - 1], info[pivo]);
@@ -266,16 +140,153 @@ int particiona(Informacao *info, int beg, int end, int pivo)
 	return pos;
 }
 
-void quickSort2(Informacao *info, int beg, int end)
+void intercala(int numArqs, int memoria, int linha)
 {
-	if (beg == end)
-		return;
-	int pos = particiona(info, beg, end, beg);
-	quickSort2(info, beg, pos);
-	quickSort2(info, pos + 1, end);
+	Informacao infoAux;
+	bool zerouArquivo[numArqs] = {false};
+	char nomeArq[1000] = {' '};
+	char *elemento;
+	int contLinha, contNulo = 0, posMenor;
+	contLinha = posMenor = 0;
+	string cadeiaAteVirg;
+
+	ifstream *repo = new ifstream[numArqs];
+	Informacao *info = new Informacao[numArqs];
+
+	ofstream fout("final.txt");
+
+	//Preenchemos as posicoes do vetor de informacao com o menor elemento de cada struct
+	for (int i = 0; i < numArqs; i++)
+	{
+		sprintf(nomeArq, "buffer%d.txt", i);
+		repo[i] = ifstream(nomeArq);
+
+		getline(repo[i], cadeiaAteVirg, ',');
+		elemento = (char *)cadeiaAteVirg.c_str();
+
+		info[i].ordena = new char[strlen(elemento) + 1];
+		strcpy(info[i].ordena, elemento);
+
+		getline(repo[i], cadeiaAteVirg, ';');
+		elemento = (char *)cadeiaAteVirg.c_str();
+
+		repo[i].ignore(1, '\n');
+
+		info[i].media = new char[strlen(elemento) + 1];
+		strcpy(info[i].media, elemento);
+	}
+
+	while (contNulo < numArqs)
+	{
+		for (int i = 0; i < numArqs; i++)
+			if (!zerouArquivo[i])
+			{
+				infoAux = info[i];
+				posMenor = i;
+				break;
+			}
+
+		for (int i = 0; i < numArqs; i++)
+			if (strcmp(info[i].ordena, infoAux.ordena) < 0 && !zerouArquivo[i])
+			{
+				posMenor = i;
+				infoAux = info[i];
+			}
+
+		fout << infoAux.ordena << ',' << infoAux.media << ';' << endl;
+
+		if (repo[posMenor].peek() == -1)
+		{
+			contNulo++;
+			zerouArquivo[posMenor] = true;
+		}
+
+		delete[] info[posMenor].ordena;
+		delete[] info[posMenor].media;
+
+		getline(repo[posMenor], cadeiaAteVirg, ',');
+		elemento = (char *)cadeiaAteVirg.c_str();
+
+		info[posMenor].ordena = new char[strlen(elemento) + 1];
+		strcpy(info[posMenor].ordena, elemento);
+
+		getline(repo[posMenor], cadeiaAteVirg, ';');
+
+		repo[posMenor].ignore(1, '\n');
+
+		elemento = (char *)cadeiaAteVirg.c_str();
+
+		info[posMenor].media = new char[strlen(elemento) + 1];
+		strcpy(info[posMenor].media, elemento);
+	}
+
+	//Daqui pra baixo nao ha erros
+	fout.close();
+	for (int i = 0; i < numArqs; i++)
+	{
+		delete[] info[i].ordena;
+		delete[] info[i].media;
+		repo[i].close();
+	}
+	delete[] info;
+	delete[] repo;
+	agregaChaves(memoria * numArqs - memoria - linha);
 }
 
-void quickSort(Informacao *info, int tam)
+void agregaChaves(int totLinhas)
 {
-	quickSort2(info, 0, tam);
+	char *chave, *elemento, *compara;
+	long double media = 0;
+	int contMedia = 1;
+	string aux;
+
+	ifstream fin("final.txt");
+	for (int i = 0; fin.peek() != -1; i++)
+	{
+		getline(fin, aux, ',');
+		elemento = (char *)aux.c_str();
+
+		chave = new char[strlen(elemento) + 1];
+		strcpy(chave, elemento);
+
+		getline(fin, aux, ';');
+		elemento = (char *)aux.c_str();
+		fin.ignore(1,'\n');
+		if (i == 0)
+		{
+			compara = new char[strlen(chave)+1];
+			strcpy(compara, chave);
+			media = atof(elemento);
+		}
+		else
+		{
+			if (strcmp(chave, compara) == 0)
+			{
+				media += atof(elemento);
+				contMedia++;
+			}
+			else
+			{
+				cout <<fixed << setprecision(50) <<compara << ',' << media / (long double)contMedia << endl;
+				delete[] compara;
+				compara = new char[strlen(chave)+1];
+				strcpy(compara, chave);
+				media = atof(elemento);
+				contMedia = 1;
+			}
+		}
+		delete[] chave;
+	}
+	cout << compara << ',' << media / (double)contMedia << endl;
+	delete[]compara;
+	fin.close();
+}
+void deletaBuffers(int numArqs)
+{
+	char nomeArq[1000] = {' '};
+	for (int i = 0; i < numArqs; i++)
+	{
+		sprintf(nomeArq, "buffer%d.txt", i);
+		remove(nomeArq);
+	}
 }
