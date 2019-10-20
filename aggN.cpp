@@ -12,11 +12,12 @@ struct Informacao
 };
 
 void agregaChaves(int totLinhas);
+void deletaBuffers(int numArqs);
+void intercala(int numArqs, int memoria, int linha);
+int particiona(Informacao *info, int beg, int end, int pivo);
 void quickSort(Informacao *info, int tam);
 void quickSort2(Informacao *info, int beg, int end);
-int particiona(Informacao *info, int beg, int end, int pivo);
-void intercala(int numArqs, int memoria, int linha);
-void registraMenor(Informacao *info, bool zerouArquivo[], int numArqs, ofstream &fout, int &posMenor, int &contLinha);
+
 
 int main(int agrc, char **argv)
 {
@@ -96,6 +97,7 @@ int main(int agrc, char **argv)
 	fin.close();
 	//Ordena de forma intercalada os dados dos arquivos temporarios
 	intercala(cont, memoria, linha);
+	deletaBuffers(cont);
 	return 0;
 }
 
@@ -232,11 +234,10 @@ void agregaChaves(int totLinhas)
 	char *chave, *elemento, *compara;
 	long double media = 0;
 	int contMedia = 1;
-	int contLinha = 1;
 	string aux;
 
 	ifstream fin("final.txt");
-	for (int i = 0; fin.peek() != -1 && contLinha != totLinhas; i++)
+	for (int i = 0; fin.peek() != -1; i++)
 	{
 		getline(fin, aux, ',');
 		elemento = (char *)aux.c_str();
@@ -259,7 +260,6 @@ void agregaChaves(int totLinhas)
 			{
 				media += atof(elemento);
 				contMedia++;
-				contLinha++;
 			}
 			else
 			{
@@ -269,14 +269,20 @@ void agregaChaves(int totLinhas)
 				strcpy(compara, chave);
 				media = atof(elemento);
 				contMedia = 1;
-				contLinha++;
 			}
-
 		}
-		
 		delete[] chave;
 	}
 	cout << compara << ',' << media / (double)contMedia << endl;
 	delete[]compara;
 	fin.close();
+}
+void deletaBuffers(int numArqs)
+{
+	char nomeArq[1000] = {' '};
+	for (int i = 0; i < numArqs; i++)
+	{
+		sprintf(nomeArq, "buffer%d.txt", i);
+		remove(nomeArq);
+	}
 }
