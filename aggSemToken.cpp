@@ -1,9 +1,10 @@
 /*
+Universidade Federal de Vicosa (UFV)
 Desenvolvido por: 	Erick Lima Figueredo - 98898
 					Sávio Mendes Miranda - 98886
 					Yago Lopes Lamas - 98897
 
-Disciplina: INF 112 - Giovanni Ventorim Comarela
+Disciplina: INF 112 - Giovanni Ventorim Comarella
 */
 
 #include <cstdio>
@@ -101,8 +102,7 @@ int main(int agrc, char **argv)
 	fin.close();
 	//Ordena de forma intercalada os dados dos arquivos temporarios
 	intercala(cont, memoria, linha);
-	//Não remova a linha de baixo, mas remova essa...
-	//deletaBuffers(cont);
+	deletaBuffers(cont);
 	return 0;
 }
 
@@ -146,7 +146,7 @@ void intercala(int numArqs, int memoria, int linha)
 	Informacao infoAux;
 	bool zerouArquivo[numArqs] = {false};
 	char nomeArq[1000] = {' '};
-	char *elemento, *token, *resto;
+	char *elemento;
 	int contLinha, contNulo = 0, posMenor;
 	contLinha = posMenor = 0;
 	string cadeiaAteVirg;
@@ -162,17 +162,19 @@ void intercala(int numArqs, int memoria, int linha)
 		sprintf(nomeArq, "buffer%d.txt", i);
 		repo[i] = ifstream(nomeArq);
 
-		getline(repo[i], cadeiaAteVirg);
+		getline(repo[i], cadeiaAteVirg, ',');
 		elemento = (char *)cadeiaAteVirg.c_str();
-	
-		token  = strtok(elemento, ",");
-		info[i].ordena = new char[strlen(token) + 1];
-		strcpy(info[i].ordena, token);
 
-		token = strtok(NULL, ";");
+		info[i].ordena = new char[strlen(elemento) + 1];
+		strcpy(info[i].ordena, elemento);
 
-		info[i].media = new char[strlen(token) + 1];
-		strcpy(info[i].media, token);
+		getline(repo[i], cadeiaAteVirg, ';');
+		elemento = (char *)cadeiaAteVirg.c_str();
+
+		repo[i].ignore(1, '\n');
+
+		info[i].media = new char[strlen(elemento) + 1];
+		strcpy(info[i].media, elemento);
 	}
 
 	while (contNulo < numArqs)
@@ -203,16 +205,20 @@ void intercala(int numArqs, int memoria, int linha)
 		delete[] info[posMenor].ordena;
 		delete[] info[posMenor].media;
 
-		getline(repo[posMenor], cadeiaAteVirg);
+		getline(repo[posMenor], cadeiaAteVirg, ',');
 		elemento = (char *)cadeiaAteVirg.c_str();
-		
-		token = strtok_r(elemento, ",", &resto);
 
-		info[posMenor].ordena = new char[strlen(token) + 1];
-		strcpy(info[posMenor].ordena, token);
+		info[posMenor].ordena = new char[strlen(elemento) + 1];
+		strcpy(info[posMenor].ordena, elemento);
 
-		info[posMenor].media = new char[strlen(resto) + 1];
-		strcpy(info[posMenor].media, resto);
+		getline(repo[posMenor], cadeiaAteVirg, ';');
+
+		repo[posMenor].ignore(1, '\n');
+
+		elemento = (char *)cadeiaAteVirg.c_str();
+
+		info[posMenor].media = new char[strlen(elemento) + 1];
+		strcpy(info[posMenor].media, elemento);
 	}
 
 	//Daqui pra baixo nao ha erros
@@ -230,7 +236,7 @@ void intercala(int numArqs, int memoria, int linha)
 
 void agregaChaves(int totLinhas)
 {
-	char *chave, *elemento, *compara, *token;
+	char *chave, *elemento, *compara;
 	long double media = 0;
 	int contMedia = 1;
 	string aux;
@@ -238,25 +244,26 @@ void agregaChaves(int totLinhas)
 	ifstream fin("final.txt");
 	for (int i = 0; fin.peek() != -1; i++)
 	{
-		//O getline pega a linha toda, incluindo o \n
-		getline(fin, aux);
+		getline(fin, aux, ',');
 		elemento = (char *)aux.c_str();
-		token = strtok(elemento, ",");
-		chave = new char[strlen(token) + 1];
-		strcpy(chave, token);
-		token = strtok(NULL, ";");
-		
+
+		chave = new char[strlen(elemento) + 1];
+		strcpy(chave, elemento);
+
+		getline(fin, aux, ';');
+		elemento = (char *)aux.c_str();
+		fin.ignore(1,'\n');
 		if (i == 0)
 		{
 			compara = new char[strlen(chave)+1];
 			strcpy(compara, chave);
-			media = atof(token);
+			media = atof(elemento);
 		}
 		else
 		{
 			if (strcmp(chave, compara) == 0)
 			{
-				media += atof(token);
+				media += atof(elemento);
 				contMedia++;
 			}
 			else
@@ -265,7 +272,7 @@ void agregaChaves(int totLinhas)
 				delete[] compara;
 				compara = new char[strlen(chave)+1];
 				strcpy(compara, chave);
-				media = atof(token);
+				media = atof(elemento);
 				contMedia = 1;
 			}
 		}
