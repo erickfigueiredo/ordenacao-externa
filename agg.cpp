@@ -1,8 +1,7 @@
 /*
 Desenvolvido por: 	Erick Lima Figueredo - 98898
 					Sávio Mendes Miranda - 98886
-					Yago Lopes Lamas - 98897
-
+					Yago Lopes Lamas	 - 98897
 Disciplina: INF 112 - Giovanni Ventorim Comarela
 */
 
@@ -13,8 +12,10 @@ Disciplina: INF 112 - Giovanni Ventorim Comarela
 #include <fstream>
 using namespace std;
 
+//Escopo do programa
 struct Informacao{ char *ordena; char *media;};
 
+//Prototipacao das funcoes
 void agregaChaves(int totLinhas);
 void deletaBuffers(int numArqs);
 void intercala(int numArqs, int memoria, int linha);
@@ -32,34 +33,42 @@ int main(int agrc, char **argv)
 	cOrd = cMed = linha = cont = 0;
 	string aux;
 
+	//Abre o arquivo e armazena suas iformações em um vetor auxiliar
 	ifstream fin(argv[1]);
 	getline(fin, aux);
+
+
+	//cab aponta para  aux
 	char *cab = (char *)aux.c_str();
+	
+	pOrd = strstr(cab, argv[3]);//Verifica se argv[3] esta contido  em  "cab"
+	pMed = strstr(cab, argv[4]);//Verifica se argv[4] esta contido  em  "cab"
 
-	pOrd = strstr(cab, argv[3]);
-	pMed = strstr(cab, argv[4]);
-
+	//Conta o número de vírgulas (colunas) de "pOrd"
 	for (int i = 0; &cab[i] != pOrd; i++)
 	{
 		if (cab[i] == ',')
 			cOrd++;
 	}
-
+	//Conta o número de vírgula (colunas) de "pMed"
 	for (int i = 0; &cab[i] != pMed; i++)
 	{
 		if (cab[i] == ',')
 			cMed++;
 	}
 
+
 	while (!fin.eof())
 	{
 		Informacao *informacao = new Informacao[memoria];
 
 		for (int i = 0; i < memoria && !fin.eof(); i++)
-		{
+		{	
+			//Lê os dados de fin.
 			getline(fin, aux);
 			elemento = (char *)aux.c_str();
-
+			
+			//Quebra "aux" nas virgulas(separador de colunas).
 			token = strtok(elemento, ",");
 
 			for (int j = 0; token != NULL; j++)
@@ -67,13 +76,14 @@ int main(int agrc, char **argv)
 				if (cOrd == j)
 				{
 					linha++;
-					//informacao[i].ordena = token;
+
+					//Aloca  ordena usando o número de colunas como parâmetro e copia as informações.
 					informacao[i].ordena = new char[strlen(token) + 1];
 					strcpy(informacao[i].ordena, token);
 				}
 				else if (cMed == j)
-				{
-					//informacao[i].media = token;
+				{	
+					//Aloca media usando o numero de colunas como parâmetro
 					informacao[i].media = new char[strlen(token) + 1];
 					strcpy(informacao[i].media, token);
 				}
@@ -81,11 +91,13 @@ int main(int agrc, char **argv)
 			}
 		}
 
-		quickSort(informacao, linha);
-		sprintf(temp, "buffer%d.txt", cont++);
+		quickSort(informacao, linha);  //Ordena as iformações dentro do arquivi 
+		sprintf(temp, "buffer%d.txt", cont++); //Cria arquivos temporarios que cabem na memória do computador
 		ofstream fout(temp);
+		//Preeche as informações nesses arquivos
 		for (int i = 0; i < linha; i++)
 		{
+			
 			(i == linha - 1) ? fout << informacao[i].ordena << ',' << informacao[i].media << ';' : fout << informacao[i].ordena << ',' << informacao[i].media << ';' << endl;
 		}
 		fout.close();
@@ -101,20 +113,23 @@ int main(int agrc, char **argv)
 	fin.close();
 	//Ordena de forma intercalada os dados dos arquivos temporarios
 	intercala(cont, memoria, linha);
-	//Não remova a linha de baixo, mas remova essa...
 	//deletaBuffers(cont);
 	return 0;
 }
 
 void quickSort(Informacao *info, int tam)
 {
-	quickSort2(info, 0, tam);
+	quickSort2(info, 0, tam);//Scopo da função
 }
 void quickSort2(Informacao *info, int beg, int end)
 {
-	if (beg == end)
+	if (beg == end)    //Verifica se terminou a função (fim = inicio).
+
 		return;
-	int pos = particiona(info, beg, end, beg);
+
+	int pos = particiona(info, beg, end, beg);   //Divide os dados em 2 partes
+
+	//chama a função para essas partes
 	quickSort2(info, beg, pos);
 	quickSort2(info, pos + 1, end);
 }
@@ -125,8 +140,8 @@ int particiona(Informacao *info, int beg, int end, int pivo)
 	strcpy(valorPivo, info[pivo].ordena);
 	//colocamos o pivo temporariamente na ultima posição
 	swap(info[end - 1], info[pivo]);
-	// ao acharmos um elemento menor do que o pivo, vamos coloca-lo
-	// na posicao "pos"
+	/* ao acharmos um elemento menor do que o pivo, vamos coloca-lo
+	na posicao "pos" */
 	int pos = beg;
 	for (int i = beg; i < end - 1; i++)
 	{
@@ -175,48 +190,55 @@ void intercala(int numArqs, int memoria, int linha)
 		strcpy(info[i].media, token);
 	}
 
-	while (contNulo < numArqs)
+	while (contNulo < numArqs)//Enquanto ouver arquivos
 	{
 		for (int i = 0; i < numArqs; i++)
-			if (!zerouArquivo[i])
+			if (!zerouArquivo[i])//Verifica se zeraram os arquivos.
 			{
+				//Encontra a posição do menor arquivo.
 				infoAux = info[i];
 				posMenor = i;
 				break;
 			}
 
 		for (int i = 0; i < numArqs; i++)
+		
+			//Verifica se esta ordenado ou terminou o arquivo
 			if (strcmp(info[i].ordena, infoAux.ordena) < 0 && !zerouArquivo[i])
 			{
-				posMenor = i;
+				//Encontra a posição do memor arquivo.
+				posMenor = i; 
 				infoAux = info[i];
 			}
-
+		//Escreve a informação a ser ordenada e a media a ser calculada
 		fout << infoAux.ordena << ',' << infoAux.media << ';' << endl;
 
+		//Verifica se terminaram os arquivos
 		if (repo[posMenor].peek() == -1)
 		{
 			contNulo++;
 			zerouArquivo[posMenor] = true;
 		}
-
+		
 		delete[] info[posMenor].ordena;
 		delete[] info[posMenor].media;
 
 		getline(repo[posMenor], cadeiaAteVirg);
 		elemento = (char *)cadeiaAteVirg.c_str();
 		
-		token = strtok_r(elemento, ",", &resto);
+		token = strtok_r(elemento, ",", &resto);//Quebra a string nas ","
 
+		//Aloca ordena com tamanho (posMenor) e recebe token.
 		info[posMenor].ordena = new char[strlen(token) + 1];
 		strcpy(info[posMenor].ordena, token);
 
+		//Aloca media com tamanho (posMenor) e recebe resto.
 		info[posMenor].media = new char[strlen(resto) + 1];
 		strcpy(info[posMenor].media, resto);
 	}
-
-	//Daqui pra baixo nao ha erros
 	fout.close();
+
+	//Desaloca os vetores até então alocados
 	for (int i = 0; i < numArqs; i++)
 	{
 		delete[] info[i].ordena;
@@ -225,6 +247,8 @@ void intercala(int numArqs, int memoria, int linha)
 	}
 	delete[] info;
 	delete[] repo;
+
+
 	agregaChaves(memoria * numArqs - memoria - linha);
 }
 
@@ -240,43 +264,46 @@ void agregaChaves(int totLinhas)
 	{
 		//O getline pega a linha toda, incluindo o \n
 		getline(fin, aux);
-		elemento = (char *)aux.c_str();
-		token = strtok(elemento, ",");
-		chave = new char[strlen(token) + 1];
-		strcpy(chave, token);
+		elemento = (char *)aux.c_str();//elemonto aponta para "aux"
+		token = strtok(elemento, ",");//quebra a string nas virgulas
+		chave = new char[strlen(token) + 1];//aloca a string
+		strcpy(chave, token);//copia para a string "chave"
 		token = strtok(NULL, ";");
 		
 		if (i == 0)
 		{
-			compara = new char[strlen(chave)+1];
-			strcpy(compara, chave);
-			media = atof(token);
+			compara = new char[strlen(chave)+1];//aloca compara
+			strcpy(compara, chave);//copia a string chave
+			media = atof(token);//Descarta os espaços em branco e interpreta como numero os caracteres da string
 		}
 		else
 		{
-			if (strcmp(chave, compara) == 0)
+			if (strcmp(chave, compara) == 0)//verifica se são iguais
 			{
 				media += atof(token);
 				contMedia++;
 			}
 			else
 			{
+				//Exibe o Item comparado e a média
 				cout <<fixed << setprecision(50) <<compara << ',' << media / (long double)contMedia << endl;
-				delete[] compara;
-				compara = new char[strlen(chave)+1];
+				delete[] compara;//Desaloca "compara"
+				compara = new char[strlen(chave)+1];//Aloca novamente pegando proximo caracter
 				strcpy(compara, chave);
-				media = atof(token);
+				media = atof(token);//converte para doble
 				contMedia = 1;
 			}
 		}
 		delete[] chave;
 	}
+	//Exibe a media
 	cout << compara << ',' << media / (double)contMedia << endl;
 	delete[]compara;
 	fin.close();
 }
 void deletaBuffers(int numArqs)
 {
+	//Apaga os arquivos temporarios.
 	char nomeArq[1000] = {' '};
 	for (int i = 0; i < numArqs; i++)
 	{
