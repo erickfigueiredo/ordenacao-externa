@@ -113,7 +113,7 @@ int main(int agrc, char **argv)
 	fin.close();
 	//Ordena de forma intercalada os dados dos arquivos temporarios
 	intercala(cont, memoria, linha);
-	//deletaBuffers(cont);
+	deletaBuffers(cont);
 	return 0;
 }
 
@@ -161,7 +161,7 @@ void intercala(int numArqs, int memoria, int linha)
 	Informacao infoAux;
 	bool *zerouArquivo = (bool *)calloc(numArqs, sizeof(bool));
 	char nomeArq[1000] = {' '};
-	char *elemento, *to	ken, *resto;
+	char *elemento, *token, *resto;
 	int contLinha, contNulo = 0, posMenor;
 	contLinha = posMenor = 0;
 	string cadeiaAteVirg;
