@@ -159,9 +159,9 @@ int particiona(Informacao *info, int beg, int end, int pivo)
 void intercala(int numArqs, int memoria, int linha)
 {
 	Informacao infoAux;
-	bool zerouArquivo[numArqs] = {false};
+	bool *zerouArquivo = (bool *)calloc(numArqs, sizeof(bool));
 	char nomeArq[1000] = {' '};
-	char *elemento, *token, *resto;
+	char *elemento, *to	ken, *resto;
 	int contLinha, contNulo = 0, posMenor;
 	contLinha = posMenor = 0;
 	string cadeiaAteVirg;
